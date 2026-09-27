@@ -117,23 +117,74 @@ textarea{ resize:vertical; min-height:70px; line-height:1.6; }
 .alert-item .subj{ font-size:14px; }
 .alert-item .sub{ font-size:11.5px; color: var(--text-2); }
 
-.cal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
-.cal-month{ font-family: var(--serif); font-size:16px; }
-.cal-weekdays{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; font-size:11px; color: var(--text-2); text-align:center; margin-bottom:6px; }
-.cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+/* ============ カレンダー（スマホ対応修正版） ============ */
+.cal-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:14px; }
+.cal-month{ font-family: var(--serif); font-size:16px; white-space:nowrap; }
+
+/* repeat(7, 1fr) → repeat(7, minmax(0, 1fr)) に変更。
+   1fr は min-width:auto のため内容が長いと列が縮まず、グリッド全体が横に溢れる。
+   minmax(0, 1fr) にすることで列が正しく縮み、スマホでも崩れない。 */
+.cal-weekdays{
+  display:grid;
+  grid-template-columns:repeat(7, minmax(0, 1fr));
+  gap:4px;
+  font-size:11px; color: var(--text-2); text-align:center;
+  margin-bottom:6px;
+}
+.cal-grid{
+  display:grid;
+  grid-template-columns:repeat(7, minmax(0, 1fr));
+  gap:4px;
+}
 .cal-cell{
-  aspect-ratio:1; min-height:44px; border:1px solid var(--line); border-radius: var(--radius-s);
+  aspect-ratio:1 / 1;
+  min-width:0;              /* グリッドセルが内容より縮めるように */
+  min-height:44px;
+  overflow:hidden;          /* はみ出し防止 */
+  border:1px solid var(--line); border-radius: var(--radius-s);
   background: var(--ink-2); padding:5px 6px; cursor:pointer;
   display:flex; flex-direction:column; justify-content:space-between;
   transition: border-color .15s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 .cal-cell:hover{ border-color: var(--lamp); }
-.cal-cell.empty{ visibility:hidden; cursor:default; }
+.cal-cell.empty{ visibility:hidden; cursor:default; border:none; background:none; }
 .cal-cell.today{ border-color: var(--teal); }
 .cal-cell.selected{ border-color: var(--lamp); box-shadow: inset 0 0 0 1px var(--lamp); }
-.cal-cell .dnum{ font-size:12px; color: var(--text-1); }
-.cal-cell .dmin{ font-size:11px; color: var(--lamp-soft); font-family: var(--serif); }
-@media (max-width:720px){ .cal-cell{ min-height:36px; padding:4px; } .cal-cell .dmin{ font-size:9.5px; } }
+.cal-cell .dnum{
+  font-size:12px; color: var(--text-1); line-height:1;
+}
+.cal-cell .dmin{
+  font-size:11px; color: var(--lamp-soft); font-family: var(--serif);
+  line-height:1.05;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+
+@media (max-width:720px){
+  .cal-head .btn.small{ padding:5px 8px; font-size:11.5px; }
+  .cal-month{ font-size:15px; }
+  .cal-weekdays{ gap:3px; font-size:10.5px; margin-bottom:5px; }
+  .cal-grid{ gap:3px; }
+  /* スマホでは aspect-ratio を解除して固定高さに。
+     aspect-ratio + min-height の組み合わせは端末によって
+     セルが縦長・横長になったりして崩れる原因になる。 */
+  .cal-cell{
+    aspect-ratio:auto;
+    height:44px;
+    min-height:0;
+    padding:4px 5px;
+    border-radius:2px;
+  }
+  .cal-cell .dnum{ font-size:11px; }
+  .cal-cell .dmin{ font-size:9px; line-height:1; }
+}
+@media (max-width:380px){
+  .cal-grid{ gap:2px; }
+  .cal-cell{ height:40px; padding:3px 4px; }
+  .cal-cell .dnum{ font-size:10px; }
+  .cal-cell .dmin{ font-size:8.5px; }
+}
 
 .rec-detail-row{ padding:11px 0; border-bottom:1px solid var(--line); }
 .rec-detail-row:last-child{ border-bottom:none; }
@@ -164,7 +215,7 @@ textarea{ resize:vertical; min-height:70px; line-height:1.6; }
 .len-field button{ width:26px; height:26px; border-radius:50%; border:1px solid var(--line); background:var(--ink-2); color:var(--text-0); cursor:pointer; }
 .len-field span{ min-width:34px; text-align:center; font-size:14px; }
 
-.playlist-list{ display:flex; flex-direction:column; gap:6px; margin-top:4px; }
+.playlist-list{ display:flex; flex-direction:column; gap:6px; margin-top:4px; max-height:340px; overflow-y:auto; padding-right:4px; }
 .pl-item{
   display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius: var(--radius-m);
   background: var(--ink-2); border:1px solid var(--line);
@@ -183,6 +234,17 @@ textarea{ resize:vertical; min-height:70px; line-height:1.6; }
 .player-controls{ display:flex; gap:10px; margin-top:16px; justify-content:center; }
 .vol-row{ display:flex; align-items:center; gap:10px; margin-top:14px; }
 input[type=range]{ accent-color: var(--lamp); flex:1; }
+
+.repeat-row{ display:flex; gap:8px; margin-top:10px; justify-content:center; flex-wrap:wrap; }
+.repeat-btn{
+  display:inline-flex; align-items:center; gap:6px;
+  background: var(--ink-2); border:1px solid var(--line); color: var(--text-1);
+  padding:7px 14px; border-radius:20px; font-size:12.5px; cursor:pointer;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.repeat-btn:hover{ border-color: var(--lamp); color: var(--text-0); }
+.repeat-btn.active{ border-color: var(--lamp); background: linear-gradient(180deg, rgba(230,169,66,0.15), rgba(230,169,66,0.06)); color: var(--lamp-soft); }
+.repeat-btn .ric{ font-size:14px; line-height:1; }
 
 .record-row{ display:grid; grid-template-columns: 1fr auto auto auto; gap:10px; align-items:center; padding:11px 0; border-bottom:1px solid var(--line); font-size:13.5px; }
 .record-row:last-child{ border-bottom:none; }
@@ -215,17 +277,14 @@ canvas{ width:100%; display:block; }
 }
 .toast.show{ opacity:1; transform:translateX(-50%) translateY(-4px); }
 
-/* ============ 写真添付 ============ */
 .file-input-hidden{
-  position:absolute !important;
-  width:1px; height:1px;
-  padding:0; margin:-1px;
-  overflow:hidden;
-  clip: rect(0,0,0,0);
-  white-space: nowrap;
-  border:0;
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  width: 1px;
+  height: 1px;
   opacity: 0;
-  pointer-events: none;
+  z-index: -1;
 }
 .photo-buttons{ display:flex; gap:8px; flex-wrap:wrap; margin-top:2px; }
 .photo-btn{
@@ -233,13 +292,14 @@ canvas{ width:100%; display:block; }
   background: var(--ink-2); border:1px solid var(--line); color: var(--text-0);
   padding:11px 16px; border-radius: var(--radius-s); font-size:13.5px;
   cursor:pointer; user-select:none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   transition: border-color .15s, background .15s, transform .1s;
 }
 .photo-btn:hover{ border-color: var(--lamp); background: var(--ink-3); }
 .photo-btn:active{ transform: scale(.98); }
 .photo-btn .ic{ font-size:17px; line-height:1; }
 
-/* ============ カメラ撮影モーダル ============ */
 .camera-modal{
   position:fixed; inset:0; z-index:250;
   background: rgba(5,7,11,.94);
@@ -259,6 +319,7 @@ canvas{ width:100%; display:block; }
   width:64px; height:64px; border-radius:50%; padding:0; justify-content:center;
   font-size:22px; line-height:1;
 }
+.camera-error{ text-align:center; font-size:12.5px; color: var(--rose); min-height:18px; line-height:1.6; }
 
 @media (max-width: 720px){
   #app{ flex-direction:column; }
@@ -348,6 +409,11 @@ canvas{ width:100%; display:block; }
           <button class="btn small ghost" id="bgmPrev">⏮ 前へ</button>
           <button class="btn primary" id="bgmPlayPause">▶ 再生</button>
           <button class="btn small ghost" id="bgmNext">次へ ⏭</button>
+        </div>
+        <div class="repeat-row">
+          <button type="button" class="repeat-btn" id="bgmRepeatAll" data-mode="all"><span class="ric">🔁</span><span>全曲リピート</span></button>
+          <button type="button" class="repeat-btn" id="bgmRepeatOne" data-mode="one"><span class="ric">🔂</span><span>1曲リピート</span></button>
+          <button type="button" class="repeat-btn" id="bgmRepeatOff" data-mode="off"><span class="ric">➡</span><span>リピートなし</span></button>
         </div>
         <div class="vol-row">
           <span class="muted" style="width:34px;">音量</span>
@@ -469,12 +535,11 @@ canvas{ width:100%; display:block; }
         <textarea id="mText" rows="2" placeholder="なぜ間違えたと思うか"></textarea>
         <div style="height:10px;"></div>
 
-        <!-- ====== 写真の添付 ====== -->
         <label>写真を添付（任意）</label>
         <div class="photo-buttons">
-          <label class="photo-btn" for="mImage">
+          <button type="button" class="photo-btn" id="mGalleryBtn">
             <span class="ic">🖼️</span><span>端末の写真から選ぶ</span>
-          </label>
+          </button>
           <button type="button" class="photo-btn" id="mCameraBtn">
             <span class="ic">📷</span><span>その場で写真を撮る</span>
           </button>
@@ -507,12 +572,12 @@ canvas{ width:100%; display:block; }
   </main>
 </div>
 
-<!-- ====== カメラ撮影モーダル ====== -->
 <div class="camera-modal" id="cameraModal" aria-hidden="true">
   <div class="camera-inner">
     <div class="camera-stage">
       <video id="cameraVideo" playsinline autoplay muted></video>
     </div>
+    <div class="camera-error" id="cameraError"></div>
     <div class="camera-bar">
       <button type="button" class="btn ghost" id="cameraCancel">キャンセル</button>
       <button type="button" class="btn primary camera-shoot-btn" id="cameraShoot" title="撮影">●</button>
@@ -565,7 +630,7 @@ TABS.forEach(t=>{
   navEl.appendChild(b);
 });
 function showTab(id){
-  closeCamera();
+  try{ closeCamera(); }catch(e){}
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active', v.id==='view-'+id));
   document.querySelectorAll('.navlink').forEach(n=>n.classList.toggle('active', n.dataset.tab===id));
   if(id==='forget') renderForgettingCurves();
@@ -1065,15 +1130,63 @@ function playChime(){
   }catch(e){}
 }
 
-/* ---------------- BGM ---------------- */
+/* ============================================================
+   BGM
+   ============================================================ */
 const TRACKS = [
-  { id:'coffee_windows', name:'Coffee Windows', sub:'雨音 + 柔らかいパッド', wave:'sine', noise:0.030, filter:900,
+  {
+    id:'study_focus',
+    name:'Study Focus',
+    sub:'集中用バイノーラル（10Hz）｜ヘッドホン推奨',
+    wave:'sine', noise:0.014, filter:700, noiseType:'white',
+    chords:[[200.0, 210.0, 100.0]],
+    pans:[-0.75, 0.75, 0]
+  },
+  {
+    id:'deep_focus_40',
+    name:'Deep Focus 40Hz',
+    sub:'濃密な集中（40Hzガンマ波）｜ヘッドホン推奨',
+    wave:'sine', noise:0.010, filter:550, noiseType:'white',
+    chords:[[200.0, 240.0, 100.0]],
+    pans:[-0.85, 0.85, 0]
+  },
+  {
+    id:'alpha_calm_10',
+    name:'Alpha Calm 10Hz',
+    sub:'リラックス集中（10Hzアルファ波）｜ヘッドホン推奨',
+    wave:'sine', noise:0.016, filter:900, noiseType:'white',
+    chords:[[220.0, 230.0, 110.0]],
+    pans:[-0.80, 0.80, 0]
+  },
+  {
+    id:'theta_flow_6',
+    name:'Theta Flow 6Hz',
+    sub:'深い没入（6Hzシータ波）｜ヘッドホン推奨',
+    wave:'sine', noise:0.020, filter:800, noiseType:'white',
+    chords:[[180.0, 186.0, 90.0]],
+    pans:[-0.85, 0.85, 0]
+  },
+  {
+    id:'brown_noise_study',
+    name:'Brown Noise Study',
+    sub:'低域ノイズ｜長時間の作業に',
+    wave:'triangle', noise:0.060, filter:420, noiseType:'brown',
+    chords:[[110.0, 165.0, 220.0]]
+  },
+  {
+    id:'rain_piano_pad',
+    name:'Rain & Piano Pad',
+    sub:'雨音 + ピアノ風パッド',
+    wave:'sine', noise:0.050, filter:1150, noiseType:'white',
+    chords:[[261.63, 329.63, 392.00],[246.94, 311.13, 369.99],[220.00, 277.18, 329.63]]
+  },
+  { id:'coffee_windows', name:'Coffee Windows', sub:'雨音 + 柔らかいパッド', wave:'sine', noise:0.030, filter:900, noiseType:'white',
     chords:[[220.00,277.18,329.63],[196.00,246.94,293.66],[174.61,220.00,261.63],[164.81,207.65,246.94]] },
-  { id:'paper_lamp', name:'Paper Lamp', sub:'低いドローン', wave:'triangle', noise:0.010, filter:600,
+  { id:'paper_lamp', name:'Paper Lamp', sub:'低いドローン', wave:'triangle', noise:0.010, filter:600, noiseType:'white',
     chords:[[146.83,174.61,220.00],[130.81,164.81,196.00]] },
-  { id:'night_train', name:'Night Train', sub:'一定のノイズと和音', wave:'sine', noise:0.045, filter:1200,
+  { id:'night_train', name:'Night Train', sub:'一定のノイズと和音', wave:'sine', noise:0.045, filter:1200, noiseType:'white',
     chords:[[164.81,196.00,246.94],[155.56,196.00,233.08],[146.83,185.00,220.00]] },
-  { id:'morning_ink', name:'Morning Ink', sub:'明るめのパッド', wave:'sine', noise:0.018, filter:1600,
+  { id:'morning_ink', name:'Morning Ink', sub:'明るめのパッド', wave:'sine', noise:0.018, filter:1600, noiseType:'white',
     chords:[[261.63,329.63,392.00],[293.66,349.23,440.00],[246.94,311.13,369.99]] }
 ];
 
@@ -1081,6 +1194,7 @@ const BgmEngine = (function(){
   let ctx=null, master=null, live=null, chordTimer=null, advanceTimer=null;
   let currentId=null, isPlaying=false, volume=0.55;
   const TRACK_SECONDS = 180;
+
   function ensure(){
     if(!ctx){
       ctx = new (window.AudioContext||window.webkitAudioContext)();
@@ -1089,6 +1203,7 @@ const BgmEngine = (function(){
     if(ctx.state==='suspended') ctx.resume();
     return ctx;
   }
+
   function teardown(){
     if(!ctx || !live) return;
     const t = ctx.currentTime;
@@ -1097,49 +1212,80 @@ const BgmEngine = (function(){
     try{ master.gain.linearRampToValueAtTime(0.0001, t+0.8); }catch(e){}
     const snapshot = live; live = null;
     setTimeout(()=>{
-      snapshot.oscs.forEach(n=>{ try{n.o.stop(); n.o.disconnect(); n.g.disconnect();}catch(e){} });
-      if(snapshot.noise){ try{ snapshot.noise.src.stop(); }catch(e){} }
+      snapshot.nodes.forEach(n=>{
+        try{
+          n.o.stop(); n.o.disconnect();
+          n.g.disconnect();
+          if(n.p) n.p.disconnect();
+        }catch(e){}
+      });
+      if(snapshot.noise){ try{ snapshot.noise.src.stop(); snapshot.noise.src.disconnect(); }catch(e){} }
       try{ master.gain.value = volume * 0.35; }catch(e){}
     }, 900);
   }
+
   function start(id, onEnd){
     const track = TRACKS.find(t=>t.id===id);
     if(!track) return;
     const c = ensure();
     teardown();
     clearInterval(chordTimer); clearTimeout(advanceTimer);
-    const oscs = track.chords[0].map((f,i)=>{
+
+    const nodes = track.chords[0].map((f,i)=>{
       const o=c.createOscillator(); o.type = track.wave; o.frequency.value = f;
       const g=c.createGain(); g.gain.value = 0.0001;
-      o.connect(g); g.connect(master);
+      let p = null;
+      if(track.pans && track.pans[i] !== undefined && typeof c.createStereoPanner === 'function'){
+        p = c.createStereoPanner();
+        p.pan.value = track.pans[i];
+        o.connect(g); g.connect(p); p.connect(master);
+      } else {
+        o.connect(g); g.connect(master);
+      }
       g.gain.linearRampToValueAtTime(0.10/(i+1), c.currentTime+3);
       o.start();
-      return {o,g};
+      return {o,g,p};
     });
+
     let noise=null;
     if(track.noise>0){
       const buf = c.createBuffer(1, Math.floor(c.sampleRate*2), c.sampleRate);
       const d = buf.getChannelData(0);
-      for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+      if(track.noiseType === 'brown'){
+        let last = 0;
+        for(let i=0;i<d.length;i++){
+          const white = Math.random()*2-1;
+          last = (last + 0.02*white) / 1.02;
+          d[i] = last * 3.5;
+        }
+      } else {
+        for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+      }
       const src=c.createBufferSource(); src.buffer=buf; src.loop=true;
       const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=track.filter;
       const ng=c.createGain(); ng.gain.value=track.noise;
       src.connect(lp); lp.connect(ng); ng.connect(master); src.start();
       noise={src,ng};
     }
-    live = {oscs, noise}; currentId = id; isPlaying = true;
+
+    live = {nodes, noise}; currentId = id; isPlaying = true;
+
     let idx=0;
-    chordTimer = setInterval(()=>{
-      if(!live || !ctx) return;
-      idx = (idx+1) % track.chords.length;
-      const ch = track.chords[idx];
-      live.oscs.forEach((n,i)=>{
-        const target = ch[i] != null ? ch[i] : ch[0];
-        try{ n.o.frequency.linearRampToValueAtTime(target, ctx.currentTime+4); }catch(e){}
-      });
-    }, 9000);
+    if(track.chords.length > 1){
+      chordTimer = setInterval(()=>{
+        if(!live || !ctx) return;
+        idx = (idx+1) % track.chords.length;
+        const ch = track.chords[idx];
+        live.nodes.forEach((n,i)=>{
+          const target = ch[i] != null ? ch[i] : ch[0];
+          try{ n.o.frequency.linearRampToValueAtTime(target, ctx.currentTime+4); }catch(e){}
+        });
+      }, 9000);
+    }
+
     if(onEnd) advanceTimer = setTimeout(()=>{ if(isPlaying) onEnd(); }, TRACK_SECONDS*1000);
   }
+
   function stop(){ clearInterval(chordTimer); clearTimeout(advanceTimer); teardown(); isPlaying=false; currentId=null; }
   function setVolume(v){ volume = v; if(master && ctx){ try{ master.gain.value = v*0.35; }catch(e){} } }
   return { play:start, pause:stop, stop:stop, setVolume:setVolume,
@@ -1148,7 +1294,9 @@ const BgmEngine = (function(){
 
 let playlistState = [];
 let currentPlayingId = null;
-const PL_KEY = 'akari-desk-playlist-v1';
+let repeatMode = 'all';
+const PL_KEY = 'akari-desk-playlist-v3';
+const REPEAT_KEY = 'akari-desk-repeat-mode-v1';
 
 function loadPlaylistState(){
   let saved = null;
@@ -1158,9 +1306,14 @@ function loadPlaylistState(){
   const order = Array.isArray(saved) ? saved.map(s=>s && s.id).filter(id=>TRACKS.some(t=>t.id===id)) : [];
   TRACKS.forEach(t=>{ if(!order.includes(t.id)) order.push(t.id); });
   playlistState = order.map(id=>({ id, on: (id in map) ? map[id] : true }));
-  savePlaylistState(); renderPlaylist();
+  try{
+    const rm = localStorage.getItem(REPEAT_KEY);
+    if(rm === 'all' || rm === 'one' || rm === 'off') repeatMode = rm;
+  }catch(e){}
+  savePlaylistState(); renderPlaylist(); renderRepeatUI();
 }
 function savePlaylistState(){ try{ localStorage.setItem(PL_KEY, JSON.stringify(playlistState)); }catch(e){} }
+function saveRepeatMode(){ try{ localStorage.setItem(REPEAT_KEY, repeatMode); }catch(e){} }
 function checkedTracks(){ return playlistState.filter(p=>p.on).map(p=>TRACKS.find(t=>t.id===p.id)).filter(Boolean); }
 
 function renderPlaylist(){
@@ -1179,6 +1332,22 @@ function renderPlaylist(){
   }).join('');
 }
 
+function renderRepeatUI(){
+  ['all','one','off'].forEach(m=>{
+    const btn = document.getElementById('bgmRepeat'+m.charAt(0).toUpperCase()+m.slice(1));
+    if(!btn) return;
+    btn.classList.toggle('active', repeatMode === m);
+  });
+  if(!currentPlayingId){
+    setBgmHint(repeatMode==='one' ? 'リピート：1曲を繰り返します'
+      : repeatMode==='off' ? 'リピート：リストの最後で停止します'
+      : 'リピート：リストを繰り返します');
+  }
+}
+document.getElementById('bgmRepeatAll').addEventListener('click', ()=>{ repeatMode='all'; saveRepeatMode(); renderRepeatUI(); if(currentPlayingId){ const t=TRACKS.find(x=>x.id===currentPlayingId); setBgmHint('再生中：'+t.name+'（全曲リピート）'); } });
+document.getElementById('bgmRepeatOne').addEventListener('click', ()=>{ repeatMode='one'; saveRepeatMode(); renderRepeatUI(); if(currentPlayingId){ const t=TRACKS.find(x=>x.id===currentPlayingId); setBgmHint('再生中：'+t.name+'（1曲リピート）'); } });
+document.getElementById('bgmRepeatOff').addEventListener('click', ()=>{ repeatMode='off'; saveRepeatMode(); renderRepeatUI(); if(currentPlayingId){ const t=TRACKS.find(x=>x.id===currentPlayingId); setBgmHint('再生中：'+t.name+'（リピートなし）'); } });
+
 document.getElementById('playlistList').addEventListener('click', e=>{
   const item = e.target.closest('.pl-item');
   if(!item) return;
@@ -1188,7 +1357,7 @@ document.getElementById('playlistList').addEventListener('click', e=>{
   if(e.target.classList.contains('pl-check')){
     playlistState[idx].on = e.target.checked;
     savePlaylistState(); renderPlaylist();
-    if(!e.target.checked && currentPlayingId===id) playNext(1);
+    if(!e.target.checked && currentPlayingId===id) playNext(1, true);
   } else if(e.target.classList.contains('pl-up') && idx>0){
     const tmp = playlistState[idx-1]; playlistState[idx-1]=playlistState[idx]; playlistState[idx]=tmp;
     savePlaylistState(); renderPlaylist();
@@ -1201,30 +1370,56 @@ document.getElementById('playlistList').addEventListener('click', e=>{
 function setBgmHint(msg){ document.getElementById('bgmHint').textContent = msg; }
 function updatePlayPauseBtn(){ document.getElementById('bgmPlayPause').textContent = BgmEngine.isPlaying ? '⏸ 一時停止' : '▶ 再生'; }
 
-function playTrack(id){
+function playTrack(id, isAuto){
   const list = checkedTracks();
   if(!list.length){ toast('再生する曲にチェックを入れてください'); return; }
   if(!list.some(t=>t.id===id)) id = list[0].id;
   currentPlayingId = id;
-  BgmEngine.play(id, ()=>playNext(1));
+  BgmEngine.play(id, ()=>{ playNext(1, true); });
   renderPlaylist(); updatePlayPauseBtn();
   const t = TRACKS.find(x=>x.id===id);
-  setBgmHint('再生中：'+t.name+'（'+t.sub+'）');
+  const repeatLabel = repeatMode==='one' ? '（1曲リピート）' : repeatMode==='off' ? '（リピートなし）' : '（全曲リピート）';
+  setBgmHint('再生中：'+t.name+'（'+t.sub+'）'+repeatLabel);
 }
-function playNext(dir){
+
+function playNext(dir, isAuto){
   const list = checkedTracks();
-  if(!list.length){ BgmEngine.stop(); currentPlayingId=null; renderPlaylist(); updatePlayPauseBtn(); setBgmHint('チェックされた曲がありません。'); return; }
+  if(!list.length){
+    BgmEngine.stop(); currentPlayingId=null; renderPlaylist(); updatePlayPauseBtn();
+    setBgmHint('チェックされた曲がありません。');
+    return;
+  }
+  if(isAuto){
+    if(repeatMode === 'one'){ playTrack(currentPlayingId, true); return; }
+    if(repeatMode === 'off'){
+      const i = list.findIndex(t=>t.id===currentPlayingId);
+      if(i === list.length - 1){
+        BgmEngine.stop(); currentPlayingId=null; renderPlaylist(); updatePlayPauseBtn();
+        setBgmHint('リストの最後まで再生しました。');
+        return;
+      }
+    }
+  }
   let i = list.findIndex(t=>t.id===currentPlayingId);
-  if(i<0) i = 0; else i = (i + dir + list.length) % list.length;
-  playTrack(list[i].id);
+  if(i < 0) i = 0;
+  else {
+    i = i + dir;
+    if(i >= list.length) i = 0;
+    if(i < 0) i = list.length - 1;
+  }
+  playTrack(list[i].id, isAuto);
 }
 
 document.getElementById('bgmPlayPause').addEventListener('click', ()=>{
-  if(BgmEngine.isPlaying){ BgmEngine.pause(); currentPlayingId=null; renderPlaylist(); updatePlayPauseBtn(); setBgmHint('停止中'); }
-  else { playNext(0); }
+  if(BgmEngine.isPlaying){
+    BgmEngine.pause(); currentPlayingId=null; renderPlaylist(); updatePlayPauseBtn();
+    setBgmHint('停止中');
+  } else {
+    playNext(0, false);
+  }
 });
-document.getElementById('bgmNext').addEventListener('click', ()=>playNext(1));
-document.getElementById('bgmPrev').addEventListener('click', ()=>playNext(-1));
+document.getElementById('bgmNext').addEventListener('click', ()=>playNext(1, false));
+document.getElementById('bgmPrev').addEventListener('click', ()=>playNext(-1, false));
 document.getElementById('volSlider').addEventListener('input', e=>{
   const v = Number(e.target.value)/100;
   BgmEngine.setVolume(v);
@@ -1238,7 +1433,7 @@ document.getElementById('volSlider').addEventListener('input', e=>{
 })();
 
 /* ============================================================
-   画像の圧縮（ローカル保存用）
+   画像の圧縮
    ============================================================ */
 function compressImageToDataURL(file, maxDim, quality){
   maxDim = maxDim || 1280;
@@ -1429,19 +1624,17 @@ window.addEventListener('resize', ()=>{ drawMistakeChart(); });
 
 /* ============================================================
    写真の添付
-   - 「端末の写真から選ぶ」→ label for=... でファイル選択
-   - 「その場で写真を撮る」→ getUserMedia でアプリ内カメラを起動
-     （使えない環境では capture="environment" 付きinputにフォールバック）
    ============================================================ */
 const galleryInput = document.getElementById('mImage');
 const cameraInput  = document.getElementById('mImageCamera');
+const galleryBtn   = document.getElementById('mGalleryBtn');
 const cameraBtn    = document.getElementById('mCameraBtn');
 const cameraModal  = document.getElementById('cameraModal');
 const cameraVideo  = document.getElementById('cameraVideo');
+const cameraError  = document.getElementById('cameraError');
 
 let cameraStream = null;
 let cameraFacing = 'environment';
-let cameraBusy = false;
 
 function handleFilePicked(file){
   if(!file) return;
@@ -1458,6 +1651,7 @@ function handleFilePicked(file){
   reader.onload = ()=>{
     document.getElementById('mImagePreview').src = reader.result;
     document.getElementById('mImagePreviewWrap').style.display = 'block';
+    document.getElementById('mImageHint').textContent = '画像を添付しました' + (file.name ? '：'+file.name : '');
   };
   reader.readAsDataURL(file);
 }
@@ -1471,44 +1665,43 @@ cameraInput.addEventListener('change', e=>{
   e.target.value = '';
 });
 
-/* ---------- アプリ内カメラ ---------- */
+galleryBtn.addEventListener('click', function(e){
+  e.preventDefault();
+  try{ galleryInput.click(); }
+  catch(err){ console.error('[akari] gallery click failed:', err); toast('ファイル選択を開けませんでした'); }
+});
+
 function cameraSupported(){
-  return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  return !!(navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function');
 }
 
-async function openCamera(){
-  if(cameraBusy) return;
-  if(!cameraSupported()){
-    // 非対応環境 → capture付きinputへフォールバック
-    cameraInput.click();
-    return;
-  }
-  cameraBusy = true;
-  cameraBtn.disabled = true;
-  try{
-    cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: cameraFacing },
-        width: { ideal: 1920 },
-        height: { ideal: 1080 }
-      },
-      audio: false
-    });
-  }catch(err){
-    // 権限拒否・カメラ無し・HTTPSでない → ネイティブcaptureへ
-    console.warn('getUserMedia failed:', err);
-    cameraBusy = false;
-    cameraBtn.disabled = false;
-    cameraInput.click();
-    return;
-  }
-  cameraVideo.srcObject = cameraStream;
+cameraBtn.addEventListener('click', function(e){
+  e.preventDefault();
+  if(!cameraSupported()){ cameraInput.click(); return; }
+  openCameraModal();
+});
+
+async function openCameraModal(){
   cameraModal.classList.add('open');
   cameraModal.setAttribute('aria-hidden','false');
+  cameraError.textContent = '';
   document.body.style.overflow = 'hidden';
-  try{ await cameraVideo.play(); }catch(e){}
-  cameraBusy = false;
-  cameraBtn.disabled = false;
+
+  try{
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: cameraFacing }, width:{ideal:1920}, height:{ideal:1080} },
+      audio: false
+    });
+    cameraVideo.srcObject = cameraStream;
+    try{ await cameraVideo.play(); }catch(e){}
+  }catch(err){
+    console.warn('[akari] getUserMedia error:', err && err.name, err && err.message);
+    let msg = 'カメラを起動できませんでした。';
+    if(err && err.name === 'NotAllowedError') msg = 'カメラの使用が許可されていません。ブラウザの設定から許可してください。';
+    else if(err && err.name === 'NotFoundError') msg = 'カメラが見つかりません。「端末の写真から選ぶ」をご利用ください。';
+    else if(err && err.name === 'NotReadableError') msg = '他のアプリがカメラを使用中です。';
+    cameraError.textContent = msg + '（「端末の写真から選ぶ」もご利用いただけます）';
+  }
 }
 
 function closeCamera(){
@@ -1521,16 +1714,19 @@ function closeCamera(){
     cameraStream = null;
   }
   if(cameraVideo) cameraVideo.srcObject = null;
-  cameraBusy = false;
-  if(cameraBtn) cameraBtn.disabled = false;
+  if(cameraError) cameraError.textContent = '';
 }
 
+document.getElementById('cameraCancel').addEventListener('click', closeCamera);
+cameraModal.addEventListener('click', function(e){ if(e.target === cameraModal) closeCamera(); });
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape' && cameraModal.classList.contains('open')) closeCamera();
+});
+window.addEventListener('pagehide', closeCamera);
+
 function canvasToBlob(canvas, type, quality){
-  return new Promise(resolve=>{
-    if(canvas.toBlob){
-      canvas.toBlob(b=>resolve(b), type, quality);
-      return;
-    }
+  return new Promise(function(resolve){
+    if(canvas.toBlob){ canvas.toBlob(function(b){ resolve(b); }, type, quality); return; }
     const dataUrl = canvas.toDataURL(type, quality);
     const bin = atob(dataUrl.split(',')[1]);
     const arr = new Uint8Array(bin.length);
@@ -1539,22 +1735,21 @@ function canvasToBlob(canvas, type, quality){
   });
 }
 
-async function shootPhoto(){
+document.getElementById('cameraShoot').addEventListener('click', async function(){
   if(!cameraStream){ toast('カメラが起動していません'); return; }
   const vw = cameraVideo.videoWidth;
   const vh = cameraVideo.videoHeight;
   if(!vw || !vh){ toast('カメラの準備中です。少し待ってください'); return; }
 
   const canvas = document.createElement('canvas');
-  canvas.width = vw;
-  canvas.height = vh;
+  canvas.width = vw; canvas.height = vh;
   canvas.getContext('2d').drawImage(cameraVideo, 0, 0, vw, vh);
 
   let blob = null;
-  try{ blob = await canvasToBlob(canvas, 'image/jpeg', 0.9); }catch(e){ blob = null; }
+  try{ blob = await canvasToBlob(canvas, 'image/jpeg', 0.9); }catch(e){}
   if(!blob){ toast('撮影に失敗しました'); return; }
 
-  const name = 'camera-'+Date.now()+'.jpg';
+  const name = 'camera-' + Date.now() + '.jpg';
   let file;
   try{ file = new File([blob], name, {type:'image/jpeg'}); }
   catch(e){
@@ -1565,11 +1760,11 @@ async function shootPhoto(){
   handleFilePicked(file);
   closeCamera();
   toast('写真を添付しました');
-}
+});
 
-async function switchCamera(){
+document.getElementById('cameraSwitch').addEventListener('click', async function(){
+  if(!cameraStream){ toast('カメラが起動していません'); return; }
   cameraFacing = (cameraFacing === 'environment') ? 'user' : 'environment';
-  if(!cameraStream) return;
   cameraStream.getTracks().forEach(t=>{ try{ t.stop(); }catch(e){} });
   cameraStream = null;
   try{
@@ -1579,28 +1774,18 @@ async function switchCamera(){
     });
     cameraVideo.srcObject = cameraStream;
     try{ await cameraVideo.play(); }catch(e){}
+    cameraError.textContent = '';
   }catch(e){
-    toast('カメラを切り替えられませんでした');
-    closeCamera();
+    cameraError.textContent = 'カメラを切り替えられませんでした';
   }
-}
-
-cameraBtn.addEventListener('click', openCamera);
-document.getElementById('cameraCancel').addEventListener('click', closeCamera);
-document.getElementById('cameraShoot').addEventListener('click', shootPhoto);
-document.getElementById('cameraSwitch').addEventListener('click', switchCamera);
-cameraModal.addEventListener('click', e=>{ if(e.target === cameraModal) closeCamera(); });
-document.addEventListener('keydown', e=>{
-  if(e.key === 'Escape' && cameraModal.classList.contains('open')) closeCamera();
 });
-window.addEventListener('pagehide', closeCamera);
 
-/* ---------- 画像クリア ---------- */
-document.getElementById('mImageClear').addEventListener('click', ()=>{
+document.getElementById('mImageClear').addEventListener('click', function(){
   pendingImageFile = null;
-  galleryInput.value=''; cameraInput.value='';
-  document.getElementById('mImagePreview').src='';
-  document.getElementById('mImagePreviewWrap').style.display='none';
+  galleryInput.value = ''; cameraInput.value = '';
+  document.getElementById('mImagePreview').src = '';
+  document.getElementById('mImagePreviewWrap').style.display = 'none';
+  document.getElementById('mImageHint').textContent = 'ボタンを押すと、ファイル選択またはカメラが起動します。';
 });
 
 /* ---------- AI分類 ---------- */
@@ -1642,18 +1827,13 @@ document.getElementById('mSubmit').addEventListener('click', async ()=>{
         imageUrl = up.url; imageId = up.id;
       }catch(err){
         console.warn('upload failed, falling back to dataURL', err);
-        try{
-          imageUrl = await compressImageToDataURL(pendingImageFile, 1000, 0.7);
-        }catch(e2){ toast('画像の保存に失敗しました'); }
+        try{ imageUrl = await compressImageToDataURL(pendingImageFile, 1000, 0.7); }
+        catch(e2){ toast('画像の保存に失敗しました'); }
       }
     } else {
       hint.textContent = '画像を圧縮中…';
-      try{
-        imageUrl = await compressImageToDataURL(pendingImageFile, 1000, 0.7);
-      }catch(e){
-        console.warn('compress failed', e);
-        toast('画像の圧縮に失敗しました');
-      }
+      try{ imageUrl = await compressImageToDataURL(pendingImageFile, 1000, 0.7); }
+      catch(e){ console.warn('compress failed', e); toast('画像の圧縮に失敗しました'); }
     }
   }
 
