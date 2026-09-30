@@ -140,6 +140,34 @@
     }
     #in-app-notification { animation: fadeIn 0.25s ease-out; }
     #in-app-notification > div { animation: notifPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+    /* ★★ ウェルカムモーダル: インラインstyle で完全制御 */
+    @keyframes welcomePop {
+      0% { opacity: 0; transform: scale(0.92) translateY(12px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    #welcome-modal {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 2147483647 !important;
+      background: rgba(2, 6, 23, 0.88) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+    #welcome-modal .welcome-card {
+      animation: welcomePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
   </style>
 </head>
 <body class="antialiased selection:bg-amber-500 selection:text-black">
@@ -726,6 +754,126 @@
     </div>
   </div>
 
+  <!-- ============ WELCOME / 使い方説明モーダル ============ -->
+  <!-- ★★ 完全にインラインstyleで制御。Tailwindクラスには一切依存しません。 -->
+  <div id="welcome-modal" style="display:none;">
+    <div class="welcome-card glass-strong rounded-3xl max-w-md w-full shadow-2xl flex flex-col" style="max-height:92vh; overflow:hidden;">
+
+      <!-- ヘッダー -->
+      <div class="px-6 pt-6 pb-4 text-center relative shrink-0">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-slate-950 font-black text-2xl shadow-lg shadow-amber-500/40 mb-3">
+          灯
+        </div>
+        <h2 class="text-lg font-black gradient-text">あかりデスクへようこそ</h2>
+        <p class="text-[11px] text-slate-400 mt-1.5">学習を習慣にする6つの機能を紹介します</p>
+      </div>
+
+      <!-- スクロール領域 -->
+      <div class="px-5 pb-2 overflow-y-auto flex-1 space-y-2.5" style="min-height:0;">
+
+        <!-- 1. ホーム -->
+        <div class="flex gap-3 bg-slate-950/50 border border-slate-800 rounded-2xl p-3">
+          <div class="w-9 h-9 shrink-0 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 text-sm">
+            <i class="fa-solid fa-house"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-[11px] font-black text-slate-100">ホーム</p>
+            <p class="text-[10px] text-slate-400 leading-relaxed mt-0.5">
+              今日と今月の合計学習時間をひと目で確認できます。最近の記録もここに表示されます。
+            </p>
+          </div>
+        </div>
+
+        <!-- 2. タイマー & BGM -->
+        <div class="flex gap-3 bg-slate-950/50 border border-slate-800 rounded-2xl p-3">
+          <div class="w-9 h-9 shrink-0 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 text-sm">
+            <i class="fa-solid fa-stopwatch"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-[11px] font-black text-slate-100">タイマー &amp; BGM</p>
+            <p class="text-[10px] text-slate-400 leading-relaxed mt-0.5">
+              学習・休憩の時間を自由に設定できるポモドーロタイマー。自動ループも可能です。雨音・波音・バイノーラルビートなどの内蔵BGMや、お手持ちの音楽ファイル・URLも再生できます。
+            </p>
+          </div>
+        </div>
+
+        <!-- 3. 学習記録 -->
+        <div class="flex gap-3 bg-slate-950/50 border border-slate-800 rounded-2xl p-3">
+          <div class="w-9 h-9 shrink-0 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-sm">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-[11px] font-black text-slate-100">学習記録</p>
+            <p class="text-[10px] text-slate-400 leading-relaxed mt-0.5">
+              教科・時間・日付・メモを手動で追加できます。履歴はあとから編集・削除も可能です。タイマー完了時は自動でも記録されます。
+            </p>
+          </div>
+        </div>
+
+        <!-- 4. カレンダー -->
+        <div class="flex gap-3 bg-slate-950/50 border border-slate-800 rounded-2xl p-3">
+          <div class="w-9 h-9 shrink-0 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 text-sm">
+            <i class="fa-solid fa-calendar-days"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-[11px] font-black text-slate-100">カレンダー</p>
+            <p class="text-[10px] text-slate-400 leading-relaxed mt-0.5">
+              日ごとの学習量を色の濃さで可視化します。日付をタップすると、その日の記録の確認・編集・削除ができます。
+            </p>
+          </div>
+        </div>
+
+        <!-- 5. 忘却曲線 -->
+        <div class="flex gap-3 bg-slate-950/50 border border-slate-800 rounded-2xl p-3">
+          <div class="w-9 h-9 shrink-0 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 text-sm">
+            <i class="fa-solid fa-brain"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-[11px] font-black text-slate-100">忘却曲線</p>
+            <p class="text-[10px] text-slate-400 leading-relaxed mt-0.5">
+              エビングハウスの忘却曲線に基づき、1・3・7・14・30日後の復習タイミングを自動でお知らせします。
+            </p>
+          </div>
+        </div>
+
+        <!-- 6. 誤答ノート -->
+        <div class="flex gap-3 bg-slate-950/50 border border-slate-800 rounded-2xl p-3">
+          <div class="w-9 h-9 shrink-0 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-sm">
+            <i class="fa-solid fa-book-bookmark"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-[11px] font-black text-slate-100">誤答ノート</p>
+            <p class="text-[10px] text-slate-400 leading-relaxed mt-0.5">
+              間違えた問題と解法メモを画像・動画・PDFと一緒に保存して、いつでも振り返れます。
+            </p>
+          </div>
+        </div>
+
+        <!-- ヒント -->
+        <div class="bg-amber-500/10 border border-amber-500/25 rounded-2xl p-3 mt-1">
+          <p class="text-[10px] text-amber-200 leading-relaxed">
+            <i class="fa-solid fa-lightbulb text-amber-400 mr-1"></i>
+            <span class="font-bold">ヒント:</span> タイマーとBGMを組み合わせると、集中が続きやすくなります。まずは25分から始めてみましょう。
+          </p>
+        </div>
+
+      </div>
+
+      <!-- フッター -->
+      <div class="px-5 pt-3 pb-5 border-t border-slate-800/60 shrink-0 space-y-3">
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" id="welcome-dont-show" class="w-4 h-4 accent-amber-500 rounded">
+          <span class="text-[10px] text-slate-400 font-medium">次回から表示しない</span>
+        </label>
+        <button id="welcome-start-btn" type="button"
+                class="w-full bg-gradient-to-tr from-amber-500 to-amber-400 text-slate-950 font-black py-3 rounded-xl text-sm shadow-lg shadow-amber-500/30 active:scale-[0.98] transition">
+          <i class="fa-solid fa-rocket mr-1"></i> はじめる
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <script>
     /* ============================================================
        状態
@@ -865,6 +1013,112 @@
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
+
+    /* ============================================================
+       ★★ チュートリアルモーダル: インラインstyleで完全制御
+       - DOMContentLoaded を待たず、可能な限り早く表示
+       - display: flex を直接セット（クラスに依存しない）
+       - 3重のフォールバック（即時 / DOMContentLoaded / load）
+    ============================================================ */
+    function showWelcomeNow() {
+      try {
+        // 「次回から表示しない」フラグをチェック
+        let hideForever = false;
+        try { hideForever = localStorage.getItem('akari_hide_welcome') === '1'; } catch (e) {}
+        if (hideForever) {
+          console.log('[Welcome] フラグによりスキップ');
+          return;
+        }
+
+        const modal = document.getElementById('welcome-modal');
+        if (!modal) {
+          console.warn('[Welcome] #welcome-modal が見つかりません');
+          return;
+        }
+
+        // チェックボックスをリセット
+        const chk = document.getElementById('welcome-dont-show');
+        if (chk) chk.checked = false;
+
+        // ボタンにイベントを確実にアタッチ
+        const btn = document.getElementById('welcome-start-btn');
+        if (btn) {
+          btn.onclick = function (ev) {
+            if (ev && ev.preventDefault) ev.preventDefault();
+            closeWelcome();
+          };
+        }
+
+        // ★ 直接styleを設定して確実に表示
+        modal.style.display = 'flex';
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.right = '0';
+        modal.style.bottom = '0';
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
+        modal.style.zIndex = '2147483647';
+        modal.style.background = 'rgba(2, 6, 23, 0.88)';
+        modal.style.backdropFilter = 'blur(12px)';
+        modal.style.webkitBackdropFilter = 'blur(12px)';
+        modal.style.alignItems = 'center';
+        modal.style.justifyContent = 'center';
+        modal.style.padding = '16px';
+        modal.style.boxSizing = 'border-box';
+        modal.style.overflowY = 'auto';
+
+        console.log('[Welcome] チュートリアルを表示しました');
+      } catch (err) {
+        console.error('[Welcome] 表示エラー:', err);
+      }
+    }
+
+    function closeWelcome() {
+      try {
+        const chk = document.getElementById('welcome-dont-show');
+        if (chk && chk.checked) {
+          try { localStorage.setItem('akari_hide_welcome', '1'); } catch (e) {}
+        }
+        const modal = document.getElementById('welcome-modal');
+        if (modal) {
+          modal.style.display = 'none';
+        }
+        console.log('[Welcome] 閉じました');
+      } catch (err) {
+        console.error('[Welcome] クローズエラー:', err);
+      }
+    }
+
+    // ★ 即時実行（DOMが既に構築済みの場合、確実に表示）
+    (function () {
+      if (document.readyState === 'loading') {
+        // DOMContentLoaded を待つ（この時点で modal が存在しないため）
+        document.addEventListener('DOMContentLoaded', function () {
+          setTimeout(showWelcomeNow, 50);
+        });
+      } else {
+        // DOMは既に構築済み → 即時表示
+        setTimeout(showWelcomeNow, 50);
+      }
+    })();
+
+    // ★ フォールバック1: DOMContentLoaded でも実行
+    document.addEventListener('DOMContentLoaded', function () {
+      setTimeout(showWelcomeNow, 200);
+    });
+
+    // ★ フォールバック2: window load でも実行（画像等の読み込み後）
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        const modal = document.getElementById('welcome-modal');
+        if (modal && modal.style.display !== 'flex') {
+          let hideForever = false;
+          try { hideForever = localStorage.getItem('akari_hide_welcome') === '1'; } catch (e) {}
+          if (!hideForever) showWelcomeNow();
+        }
+      }, 300);
+    });
 
     /* ============================================================
        Toast / Modal
