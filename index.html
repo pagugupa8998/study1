@@ -141,7 +141,6 @@
     #in-app-notification { animation: fadeIn 0.25s ease-out; }
     #in-app-notification > div { animation: notifPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
-    /* ★★ ウェルカムモーダル: インラインstyle で完全制御 */
     @keyframes welcomePop {
       0% { opacity: 0; transform: scale(0.92) translateY(12px); }
       100% { opacity: 1; transform: scale(1) translateY(0); }
@@ -573,7 +572,7 @@
         <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
           <i class="fa-solid fa-book-bookmark text-amber-400"></i> 誤答ノート作成
         </h2>
-        <form id="form-mistake-note" onsubmit="handleSaveMistakeNote(event)" class="space-y-3">
+        <form id="form-mistake-note" onsubmit="handleSaveMistakeNote(event); return false;" class="space-y-3">
           <div>
             <label class="block text-[10px] font-bold text-slate-400 mb-1.5 tracking-wide">教科 / 分野</label>
             <input type="text" id="mistake-subject" required placeholder="例: 数学IIB - 三角関数"
@@ -600,7 +599,7 @@
             </label>
             <div id="mistake-files-preview" class="flex flex-wrap gap-2 mt-2"></div>
           </div>
-          <button type="submit" class="w-full bg-gradient-to-tr from-amber-500 to-amber-400 text-slate-950 font-black py-3 rounded-xl text-xs shadow-lg shadow-amber-500/30 active:scale-[0.98] transition">
+          <button type="button" onclick="handleSaveMistakeNote(event)" class="w-full bg-gradient-to-tr from-amber-500 to-amber-400 text-slate-950 font-black py-3 rounded-xl text-xs shadow-lg shadow-amber-500/30 active:scale-[0.98] transition">
             <i class="fa-solid fa-plus mr-1"></i> ノートに保存
           </button>
         </form>
@@ -754,12 +753,77 @@
     </div>
   </div>
 
+  <!-- ============ EDIT MISTAKE MODAL (新規追加) ============ -->
+  <div id="edit-mistake-modal" class="fixed inset-0 z-[80] bg-slate-950/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="glass-strong rounded-t-3xl sm:rounded-3xl p-5 w-full max-w-md space-y-4 shadow-2xl fade-in flex flex-col max-h-[90vh]">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">
+        <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+          <i class="fa-solid fa-pen text-amber-400"></i> 誤答ノートを編集
+        </h3>
+        <button onclick="closeEditMistake()" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 active:scale-95 transition">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 overflow-y-auto pr-1" style="min-height:0;">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 mb-1.5">教科 / 分野</label>
+          <input type="text" id="edit-mistake-subject" class="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-amber-500">
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 mb-1.5">問題タイトル</label>
+          <input type="text" id="edit-mistake-title" class="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-amber-500">
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 mb-1.5">原因・解説・解法</label>
+          <textarea id="edit-mistake-solution" rows="3" class="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber-500 resize-none"></textarea>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 mb-1.5">
+            <i class="fa-solid fa-paperclip text-amber-400 mr-1"></i> 添付ファイル（編集可）
+          </label>
+          <label class="cursor-pointer bg-slate-950/80 hover:bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-slate-300 flex items-center justify-center gap-2 transition active:scale-[0.98]">
+            <i class="fa-solid fa-plus text-amber-400"></i>
+            <span>ファイルを追加</span>
+            <input type="file" id="edit-mistake-files-input" multiple accept="image/*,video/*,.pdf,.txt" class="hidden" onchange="handleEditMistakeFiles(event)">
+          </label>
+          <div id="edit-mistake-files-preview" class="flex flex-wrap gap-2 mt-2"></div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 pt-2 border-t border-slate-800 shrink-0">
+        <button onclick="deleteMistakeFromEdit()" class="px-4 py-2.5 bg-rose-500/15 text-rose-300 border border-rose-500/30 rounded-xl text-xs font-bold active:scale-95 transition">
+          <i class="fa-solid fa-trash mr-1"></i> 削除
+        </button>
+        <div class="flex-1"></div>
+        <button onclick="closeEditMistake()" class="px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold active:scale-95 transition">キャンセル</button>
+        <button onclick="saveEditedMistake()" class="px-5 py-2.5 bg-gradient-to-tr from-amber-500 to-amber-400 text-slate-950 font-black rounded-xl text-xs active:scale-95 transition">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MEDIA PREVIEW MODAL (新規追加) ============ -->
+  <div id="media-preview-modal" class="fixed inset-0 z-[95] bg-slate-950/95 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="w-full max-w-4xl flex flex-col items-center justify-center space-y-3" style="max-height:92vh;">
+      <div class="w-full flex items-center justify-between gap-2 px-1">
+        <p id="media-preview-title" class="text-xs font-bold text-slate-200 truncate">プレビュー</p>
+        <div class="flex items-center gap-2 shrink-0">
+          <button id="media-preview-download-btn" type="button" class="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 active:scale-95 transition">
+            <i class="fa-solid fa-download mr-1"></i> 保存
+          </button>
+          <button type="button" onclick="closePreviewModal()" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 active:scale-95 transition">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+      </div>
+      <div id="media-preview-content" class="w-full flex items-center justify-center overflow-auto" style="max-height:calc(92vh - 60px);"></div>
+    </div>
+  </div>
+
   <!-- ============ WELCOME / 使い方説明モーダル ============ -->
-  <!-- ★★ 完全にインラインstyleで制御。Tailwindクラスには一切依存しません。 -->
   <div id="welcome-modal" style="display:none;">
     <div class="welcome-card glass-strong rounded-3xl max-w-md w-full shadow-2xl flex flex-col" style="max-height:92vh; overflow:hidden;">
 
-      <!-- ヘッダー -->
       <div class="px-6 pt-6 pb-4 text-center relative shrink-0">
         <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-slate-950 font-black text-2xl shadow-lg shadow-amber-500/40 mb-3">
           灯
@@ -768,10 +832,8 @@
         <p class="text-[11px] text-slate-400 mt-1.5">学習を習慣にする6つの機能を紹介します</p>
       </div>
 
-      <!-- スクロール領域 -->
       <div class="px-5 pb-2 overflow-y-auto flex-1 space-y-2.5" style="min-height:0;">
 
-        <!-- 1. ホーム -->
         <div class="flex gap-3 bg-slate-950/50 border border-slate-800 rounded-2xl p-3">
           <div class="w-9 h-9 shrink-0 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 text-sm">
             <i class="fa-solid fa-house"></i>
@@ -784,7 +846,6 @@
           </div>
         </div>
 
-        <!-- 2. タイマー & BGM -->
         <div class="flex gap-3 bg-slate-950/50 border border-slate-800 rounded-2xl p-3">
           <div class="w-9 h-9 shrink-0 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 text-sm">
             <i class="fa-solid fa-stopwatch"></i>
@@ -797,7 +858,6 @@
           </div>
         </div>
 
-        <!-- 3. 学習記録 -->
         <div class="flex gap-3 bg-slate-950/50 border border-slate-800 rounded-2xl p-3">
           <div class="w-9 h-9 shrink-0 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-sm">
             <i class="fa-solid fa-pen-to-square"></i>
@@ -810,7 +870,6 @@
           </div>
         </div>
 
-        <!-- 4. カレンダー -->
         <div class="flex gap-3 bg-slate-950/50 border border-slate-800 rounded-2xl p-3">
           <div class="w-9 h-9 shrink-0 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 text-sm">
             <i class="fa-solid fa-calendar-days"></i>
@@ -823,7 +882,6 @@
           </div>
         </div>
 
-        <!-- 5. 忘却曲線 -->
         <div class="flex gap-3 bg-slate-950/50 border border-slate-800 rounded-2xl p-3">
           <div class="w-9 h-9 shrink-0 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 text-sm">
             <i class="fa-solid fa-brain"></i>
@@ -836,7 +894,6 @@
           </div>
         </div>
 
-        <!-- 6. 誤答ノート -->
         <div class="flex gap-3 bg-slate-950/50 border border-slate-800 rounded-2xl p-3">
           <div class="w-9 h-9 shrink-0 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-sm">
             <i class="fa-solid fa-book-bookmark"></i>
@@ -849,7 +906,6 @@
           </div>
         </div>
 
-        <!-- ヒント -->
         <div class="bg-amber-500/10 border border-amber-500/25 rounded-2xl p-3 mt-1">
           <p class="text-[10px] text-amber-200 leading-relaxed">
             <i class="fa-solid fa-lightbulb text-amber-400 mr-1"></i>
@@ -859,7 +915,6 @@
 
       </div>
 
-      <!-- フッター -->
       <div class="px-5 pt-3 pb-5 border-t border-slate-800/60 shrink-0 space-y-3">
         <label class="flex items-center gap-2 cursor-pointer select-none">
           <input type="checkbox" id="welcome-dont-show" class="w-4 h-4 accent-amber-500 rounded">
@@ -899,6 +954,11 @@
       calendarDate: new Date(),
       dayDetailDate: null,
       editLogIndex: null,
+
+      // ★★ 追加: 誤答ノート編集用
+      editMistakeIndex: null,
+      editMistakeFiles: [],
+      editMistakeAttachments: [],
 
       bgm: {
         audioCtx: null,
@@ -1014,33 +1074,28 @@
         .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
 
+    function formatBytes(bytes) {
+      if (!bytes || isNaN(bytes)) return '';
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
     /* ============================================================
-       ★★ チュートリアルモーダル: インラインstyleで完全制御
-       - DOMContentLoaded を待たず、可能な限り早く表示
-       - display: flex を直接セット（クラスに依存しない）
-       - 3重のフォールバック（即時 / DOMContentLoaded / load）
+       チュートリアルモーダル
     ============================================================ */
     function showWelcomeNow() {
       try {
-        // 「次回から表示しない」フラグをチェック
         let hideForever = false;
         try { hideForever = localStorage.getItem('akari_hide_welcome') === '1'; } catch (e) {}
-        if (hideForever) {
-          console.log('[Welcome] フラグによりスキップ');
-          return;
-        }
+        if (hideForever) return;
 
         const modal = document.getElementById('welcome-modal');
-        if (!modal) {
-          console.warn('[Welcome] #welcome-modal が見つかりません');
-          return;
-        }
+        if (!modal) return;
 
-        // チェックボックスをリセット
         const chk = document.getElementById('welcome-dont-show');
         if (chk) chk.checked = false;
 
-        // ボタンにイベントを確実にアタッチ
         const btn = document.getElementById('welcome-start-btn');
         if (btn) {
           btn.onclick = function (ev) {
@@ -1049,7 +1104,6 @@
           };
         }
 
-        // ★ 直接styleを設定して確実に表示
         modal.style.display = 'flex';
         modal.style.position = 'fixed';
         modal.style.top = '0';
@@ -1067,8 +1121,6 @@
         modal.style.padding = '16px';
         modal.style.boxSizing = 'border-box';
         modal.style.overflowY = 'auto';
-
-        console.log('[Welcome] チュートリアルを表示しました');
       } catch (err) {
         console.error('[Welcome] 表示エラー:', err);
       }
@@ -1081,34 +1133,26 @@
           try { localStorage.setItem('akari_hide_welcome', '1'); } catch (e) {}
         }
         const modal = document.getElementById('welcome-modal');
-        if (modal) {
-          modal.style.display = 'none';
-        }
-        console.log('[Welcome] 閉じました');
+        if (modal) modal.style.display = 'none';
       } catch (err) {
         console.error('[Welcome] クローズエラー:', err);
       }
     }
 
-    // ★ 即時実行（DOMが既に構築済みの場合、確実に表示）
     (function () {
       if (document.readyState === 'loading') {
-        // DOMContentLoaded を待つ（この時点で modal が存在しないため）
         document.addEventListener('DOMContentLoaded', function () {
           setTimeout(showWelcomeNow, 50);
         });
       } else {
-        // DOMは既に構築済み → 即時表示
         setTimeout(showWelcomeNow, 50);
       }
     })();
 
-    // ★ フォールバック1: DOMContentLoaded でも実行
     document.addEventListener('DOMContentLoaded', function () {
       setTimeout(showWelcomeNow, 200);
     });
 
-    // ★ フォールバック2: window load でも実行（画像等の読み込み後）
     window.addEventListener('load', function () {
       setTimeout(function () {
         const modal = document.getElementById('welcome-modal');
@@ -2786,25 +2830,280 @@
     }
 
     async function handleSaveMistakeNote(e) {
-      e.preventDefault();
-      const subject = document.getElementById('mistake-subject').value.trim();
-      const title = document.getElementById('mistake-title').value.trim();
-      const solution = document.getElementById('mistake-solution').value.trim();
-      if (!subject || !title) return;
-      const payloads = [];
-      for (const f of state.tempMistakeFiles) {
-        if (f.size > 4 * 1024 * 1024) { showToast(`「${f.name}」は大きすぎるためスキップ`, 'error'); continue; }
-        const data = await readAsDataURL(f);
-        if (data) payloads.push({ name: f.name, type: f.type || 'application/octet-stream', data });
+      if (e && typeof e.preventDefault === 'function') e.preventDefault();
+      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+
+      try {
+        const subjectEl = document.getElementById('mistake-subject');
+        const titleEl = document.getElementById('mistake-title');
+        const solutionEl = document.getElementById('mistake-solution');
+
+        const subject = subjectEl ? subjectEl.value.trim() : '';
+        const title = titleEl ? titleEl.value.trim() : '';
+        const solution = solutionEl ? solutionEl.value.trim() : '';
+
+        if (!subject) { showToast('教科・分野を入力してください', 'error'); return; }
+        if (!title) { showToast('問題タイトルを入力してください', 'error'); return; }
+
+        const payloads = [];
+        for (const f of state.tempMistakeFiles) {
+          if (f.size > 4 * 1024 * 1024) {
+            showToast(`「${f.name}」は大きすぎるためスキップ`, 'error');
+            continue;
+          }
+          const data = await readAsDataURL(f);
+          if (data) payloads.push({ name: f.name, type: f.type || 'application/octet-stream', data });
+        }
+
+        const note = {
+          id: Date.now(),
+          subject,
+          title,
+          solution,
+          attachments: payloads,
+          date: todayStr()
+        };
+
+        state.mistakes.unshift(note);
+        const saved = safeSetItem('akari_mistakes', JSON.stringify(state.mistakes));
+
+        try {
+          const form = document.getElementById('form-mistake-note');
+          if (form) form.reset();
+          const previewEl = document.getElementById('mistake-files-preview');
+          if (previewEl) previewEl.innerHTML = '';
+        } catch (err) { console.warn('form reset failed:', err); }
+
+        state.tempMistakeFiles = [];
+
+        renderMistakeNotes();
+
+        if (saved) {
+          showToast('誤答ノートを保存しました', 'success');
+        } else {
+          showToast('保存容量が不足していますが、このセッション内では保存されました', 'error');
+        }
+      } catch (err) {
+        console.error('[Mistake] 保存エラー:', err);
+        showToast('ノートの保存に失敗しました', 'error');
       }
-      const note = { id: Date.now(), subject, title, solution, attachments: payloads, date: todayStr() };
-      state.mistakes.unshift(note);
-      if (!safeSetItem('akari_mistakes', JSON.stringify(state.mistakes))) { state.mistakes.shift(); return; }
-      document.getElementById('form-mistake-note').reset();
-      document.getElementById('mistake-files-preview').innerHTML = '';
-      state.tempMistakeFiles = [];
-      renderMistakeNotes();
-      showToast('追加しました', 'success');
+    }
+
+    /* ★★ 追加: 誤答ノートの編集機能 */
+    function openEditMistake(index) {
+      const note = state.mistakes[index];
+      if (!note) return;
+      state.editMistakeIndex = index;
+      // 既存の添付をコピー（破壊的変更を避けるため）
+      state.editMistakeAttachments = (note.attachments || []).map(a => ({ name: a.name, type: a.type, data: a.data }));
+      state.editMistakeFiles = [];
+
+      document.getElementById('edit-mistake-subject').value = note.subject || '';
+      document.getElementById('edit-mistake-title').value = note.title || '';
+      document.getElementById('edit-mistake-solution').value = note.solution || '';
+
+      renderEditMistakeAttachments();
+
+      const modal = document.getElementById('edit-mistake-modal');
+      modal.classList.remove('hidden'); modal.classList.add('flex');
+    }
+
+    function renderEditMistakeAttachments() {
+      const p = document.getElementById('edit-mistake-files-preview');
+      if (!p) return;
+      p.innerHTML = '';
+
+      state.editMistakeAttachments.forEach((a, i) => {
+        const b = document.createElement('span');
+        b.className = 'text-[9px] bg-slate-800 border border-slate-700 text-slate-300 px-2 py-1 rounded-lg flex items-center gap-1 max-w-[160px]';
+        b.innerHTML = `<i class="fa-solid fa-file text-amber-400"></i> <span class="truncate">${escapeHtml(a.name)}</span>
+          <button type="button" onclick="removeEditMistakeAttachment(${i})" class="text-rose-400 hover:text-rose-300 ml-0.5 shrink-0"><i class="fa-solid fa-xmark text-[10px]"></i></button>`;
+        p.appendChild(b);
+      });
+
+      state.editMistakeFiles.forEach((f, i) => {
+        const b = document.createElement('span');
+        b.className = 'text-[9px] bg-amber-500/10 border border-amber-500/30 text-amber-200 px-2 py-1 rounded-lg flex items-center gap-1 max-w-[160px]';
+        b.innerHTML = `<i class="fa-solid fa-plus text-amber-400"></i> <span class="truncate">${escapeHtml(f.name)}</span>
+          <button type="button" onclick="removeEditMistakeNewFile(${i})" class="text-rose-400 hover:text-rose-300 ml-0.5 shrink-0"><i class="fa-solid fa-xmark text-[10px]"></i></button>`;
+        p.appendChild(b);
+      });
+    }
+
+    function removeEditMistakeAttachment(i) {
+      state.editMistakeAttachments.splice(i, 1);
+      renderEditMistakeAttachments();
+    }
+
+    function removeEditMistakeNewFile(i) {
+      state.editMistakeFiles.splice(i, 1);
+      renderEditMistakeAttachments();
+    }
+
+    function handleEditMistakeFiles(e) {
+      const files = Array.from(e.target.files || []);
+      state.editMistakeFiles = state.editMistakeFiles.concat(files);
+      try { e.target.value = ''; } catch (err) {}
+      renderEditMistakeAttachments();
+    }
+
+    function closeEditMistake() {
+      const m = document.getElementById('edit-mistake-modal');
+      m.classList.add('hidden'); m.classList.remove('flex');
+      state.editMistakeIndex = null;
+      state.editMistakeFiles = [];
+      state.editMistakeAttachments = [];
+    }
+
+    async function saveEditedMistake() {
+      const i = state.editMistakeIndex;
+      if (i == null || !state.mistakes[i]) return;
+
+      const subject = document.getElementById('edit-mistake-subject').value.trim();
+      const title = document.getElementById('edit-mistake-title').value.trim();
+      const solution = document.getElementById('edit-mistake-solution').value.trim();
+
+      if (!subject) { showToast('教科・分野を入力してください', 'error'); return; }
+      if (!title) { showToast('問題タイトルを入力してください', 'error'); return; }
+
+      try {
+        const payloads = state.editMistakeAttachments.slice();
+        for (const f of state.editMistakeFiles) {
+          if (f.size > 4 * 1024 * 1024) {
+            showToast(`「${f.name}」は大きすぎるためスキップ`, 'error');
+            continue;
+          }
+          const data = await readAsDataURL(f);
+          if (data) payloads.push({ name: f.name, type: f.type || 'application/octet-stream', data });
+        }
+
+        state.mistakes[i] = {
+          ...state.mistakes[i],
+          subject,
+          title,
+          solution,
+          attachments: payloads
+        };
+
+        const saved = safeSetItem('akari_mistakes', JSON.stringify(state.mistakes));
+        closeEditMistake();
+        renderMistakeNotes();
+
+        if (saved) {
+          showToast('更新しました', 'success');
+        } else {
+          showToast('保存容量が不足していますが、このセッション内では更新されました', 'error');
+        }
+      } catch (err) {
+        console.error('[Mistake] 更新エラー:', err);
+        showToast('更新に失敗しました', 'error');
+      }
+    }
+
+    function deleteMistakeFromEdit() {
+      const i = state.editMistakeIndex;
+      if (i == null) return;
+      customConfirm('ノート削除', 'このノートを削除しますか？', () => {
+        state.mistakes.splice(i, 1);
+        safeSetItem('akari_mistakes', JSON.stringify(state.mistakes));
+        closeEditMistake();
+        renderMistakeNotes();
+        showToast('削除しました');
+      });
+    }
+
+    /* ★★ 追加: 添付ファイルのプレビュー */
+    function previewMistakeAttachment(noteIndex, attIndex) {
+      try {
+        const note = state.mistakes[noteIndex];
+        if (!note || !note.attachments || !note.attachments[attIndex]) return;
+        const att = note.attachments[attIndex];
+
+        const modal = document.getElementById('media-preview-modal');
+        const content = document.getElementById('media-preview-content');
+        const titleEl = document.getElementById('media-preview-title');
+        const dlBtn = document.getElementById('media-preview-download-btn');
+        if (!modal || !content || !titleEl) return;
+
+        titleEl.textContent = att.name || 'プレビュー';
+        content.innerHTML = '';
+
+        const type = att.type || '';
+        const nameLower = (att.name || '').toLowerCase();
+
+        if (type.indexOf('image/') === 0) {
+          const img = document.createElement('img');
+          img.src = att.data;
+          img.alt = att.name || '';
+          img.className = 'max-w-full max-h-[78vh] rounded-xl shadow-2xl';
+          img.style.objectFit = 'contain';
+          content.appendChild(img);
+        } else if (type.indexOf('video/') === 0) {
+          const video = document.createElement('video');
+          video.src = att.data;
+          video.controls = true;
+          video.autoplay = false;
+          video.className = 'max-w-full max-h-[78vh] rounded-xl shadow-2xl';
+          video.style.background = '#000';
+          content.appendChild(video);
+        } else if (type === 'application/pdf' || nameLower.endsWith('.pdf')) {
+          const iframe = document.createElement('iframe');
+          iframe.src = att.data;
+          iframe.className = 'w-full rounded-xl bg-white';
+          iframe.style.height = '75vh';
+          content.appendChild(iframe);
+        } else if (type.indexOf('text/') === 0 || nameLower.endsWith('.txt')) {
+          // テキストファイルはデコードして表示
+          try {
+            const base64 = att.data.split(',')[1] || '';
+            const decoded = decodeURIComponent(escape(atob(base64)));
+            const pre = document.createElement('pre');
+            pre.className = 'w-full max-h-[75vh] overflow-auto bg-slate-900 text-slate-200 text-xs p-4 rounded-xl whitespace-pre-wrap break-words';
+            pre.textContent = decoded;
+            content.appendChild(pre);
+          } catch (e) {
+            content.innerHTML = `<p class="text-xs text-slate-400 text-center py-8">テキストの表示に失敗しました。<br>ダウンロードしてご確認ください。</p>`;
+          }
+        } else {
+          content.innerHTML = `<div class="text-center py-8 space-y-3">
+            <i class="fa-solid fa-file text-slate-600 text-4xl"></i>
+            <p class="text-xs text-slate-400">この形式のファイルはブラウザで表示できません。</p>
+            <p class="text-[11px] text-slate-500">ダウンロードしてご確認ください。</p>
+          </div>`;
+        }
+
+        // ダウンロードボタン
+        if (dlBtn) {
+          dlBtn.onclick = function () {
+            try {
+              const a = document.createElement('a');
+              a.href = att.data;
+              a.download = att.name || 'file';
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+            } catch (e) {
+              showToast('ダウンロードに失敗しました', 'error');
+            }
+          };
+        }
+
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+      } catch (err) {
+        console.error('[Preview] エラー:', err);
+        showToast('プレビューを開けませんでした', 'error');
+      }
+    }
+
+    function closePreviewModal() {
+      try {
+        const modal = document.getElementById('media-preview-modal');
+        const content = document.getElementById('media-preview-content');
+        if (content) content.innerHTML = '';
+        if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+      } catch (err) {
+        console.warn('[Preview] クローズエラー:', err);
+      }
     }
 
     function renderMistakeNotes() {
@@ -2820,22 +3119,46 @@
       state.mistakes.forEach((n, i) => {
         const card = document.createElement('div');
         card.className = 'bg-slate-950/60 p-4 rounded-2xl border border-slate-800 space-y-2.5';
+
         let attHtml = '';
         if (n.attachments && n.attachments.length > 0) {
           attHtml = `<div class="flex flex-wrap gap-2 pt-1">`;
-          n.attachments.forEach(a => {
-            if (a.type.startsWith('image/')) attHtml += `<img src="${a.data}" class="w-16 h-16 object-cover rounded-lg border border-slate-800">`;
-            else if (a.type.startsWith('video/')) attHtml += `<video src="${a.data}" controls class="w-32 h-20 rounded-lg border border-slate-800"></video>`;
-            else attHtml += `<a href="${a.data}" download="${escapeHtml(a.name)}" class="text-[9px] bg-slate-800 text-amber-400 px-2 py-1 rounded-lg border border-slate-700 flex items-center gap-1"><i class="fa-solid fa-download"></i> <span class="max-w-[100px] truncate">${escapeHtml(a.name)}</span></a>`;
+          n.attachments.forEach((a, ai) => {
+            const isImg = a.type && a.type.indexOf('image/') === 0;
+            const isVid = a.type && a.type.indexOf('video/') === 0;
+            if (isImg) {
+              attHtml += `<button type="button" onclick="previewMistakeAttachment(${i}, ${ai})" class="relative group">
+                <img src="${a.data}" alt="${escapeHtml(a.name || '')}" class="w-16 h-16 object-cover rounded-lg border border-slate-800 group-hover:opacity-80 transition">
+                <span class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                  <i class="fa-solid fa-magnifying-glass-plus text-white text-xs bg-slate-950/70 rounded-full w-6 h-6 flex items-center justify-center"></i>
+                </span>
+              </button>`;
+            } else if (isVid) {
+              attHtml += `<button type="button" onclick="previewMistakeAttachment(${i}, ${ai})" class="relative w-32 h-20 rounded-lg border border-slate-800 overflow-hidden bg-black group">
+                <video src="${a.data}" class="w-full h-full object-cover pointer-events-none"></video>
+                <span class="absolute inset-0 flex items-center justify-center">
+                  <span class="w-8 h-8 rounded-full bg-slate-950/70 flex items-center justify-center group-hover:bg-slate-950/90 transition">
+                    <i class="fa-solid fa-play text-white text-xs"></i>
+                  </span>
+                </span>
+              </button>`;
+            } else {
+              attHtml += `<button type="button" onclick="previewMistakeAttachment(${i}, ${ai})" class="text-[9px] bg-slate-800 text-amber-400 px-2 py-1 rounded-lg border border-slate-700 flex items-center gap-1 hover:bg-slate-700 transition">
+                <i class="fa-solid fa-file"></i> <span class="max-w-[100px] truncate">${escapeHtml(a.name || 'ファイル')}</span>
+              </button>`;
+            }
           });
           attHtml += `</div>`;
+          attHtml += `<p class="text-[9px] text-slate-500 mt-1"><i class="fa-solid fa-hand-pointer mr-0.5"></i>タップで拡大・再生できます</p>`;
         }
+
         card.innerHTML = `
           <div class="flex items-center justify-between gap-2">
             <span class="text-[10px] font-black text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-md border border-amber-500/20 truncate">${escapeHtml(n.subject)}</span>
-            <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center gap-1.5 shrink-0">
               <span class="text-[9px] text-slate-500 font-mono">${escapeHtml(n.date || '')}</span>
-              <button onclick="deleteMistake(${i})" class="w-6 h-6 rounded-lg bg-slate-800 text-slate-500 active:scale-95 transition"><i class="fa-solid fa-trash text-[9px]"></i></button>
+              <button onclick="openEditMistake(${i})" title="編集" class="w-6 h-6 rounded-lg bg-slate-800 text-slate-400 hover:text-amber-400 active:scale-95 transition"><i class="fa-solid fa-pen text-[9px]"></i></button>
+              <button onclick="deleteMistake(${i})" title="削除" class="w-6 h-6 rounded-lg bg-slate-800 text-slate-500 hover:text-rose-400 active:scale-95 transition"><i class="fa-solid fa-trash text-[9px]"></i></button>
             </div>
           </div>
           <h4 class="text-[11px] font-bold text-slate-100 break-words">${escapeHtml(n.title)}</h4>
